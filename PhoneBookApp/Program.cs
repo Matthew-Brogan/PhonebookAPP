@@ -7,6 +7,7 @@ namespace PhoneBookApp
     {
         static void Main(string[] args)
         {
+            //intializes UserInt to access chained methods and run program
             UserInt OpenIntro = new UserInt();
 
             OpenIntro.OpenBook();
