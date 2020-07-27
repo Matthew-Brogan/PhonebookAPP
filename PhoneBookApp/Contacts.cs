@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace PhoneBookApp
 {
@@ -22,14 +26,16 @@ namespace PhoneBookApp
         /// This dictionary will contain all user input with the key being set to Contacts.PhoneNumber
         /// and the Value being set to a formatted string using instance of class Contacts and the parameters
         /// </summary>
-        public Dictionary<string,string>  contactDict = new Dictionary<string, string>();
 
+
+
+        public int _counter = 1;
         public Contacts()
         {
-
+            
         }
 
-
+        public Dictionary<int,Contacts>  contactDict = new Dictionary<int, Contacts>();
 
 
         /// <summary>
@@ -66,9 +72,10 @@ namespace PhoneBookApp
         /// <param name="phone">Takes Contact.PhoneNumber</param>
         /// <param name="bday">Takes Contact.DateOfBirth</param>
         /// <returns></returns>
-        public string ContactFormat(string first, string last, string add, string phone,string bday)
+        public string ContactFormat(Contacts contact)
         {
-            string answer = $"Full name: {first} {last}\nPhone number: {phone}\nAddress: {add}\nBirthday: {bday}";
+            string answer = $"Full name: {contact.FirstName} {contact.LastName}\nPhone number: " +
+                $"{contact.PhoneNumber}\nAddress: {contact.Address}\nBirthday: {contact.DateOfBirth}";
 
             //returns formatted contactDict string fo user interface
             return answer;
@@ -79,11 +86,13 @@ namespace PhoneBookApp
         /// </summary>
         public void AddContact()
         {
-            //Will ask for specific user input, assign to a variable and use variable to run constructor Contact, create an instance of 
+            //Will ask for specific user input, assign to a variable and use variable to run constructor Contact, create an instance of
             //contact class and add it to a dictionary with the key value pair being phone number : Contact
             Contacts newContact = new Contacts();
 
-            Console.WriteLine("Please enter a first name:");
+       
+
+        Console.WriteLine("Please enter a first name:");
             newContact.FirstName = Console.ReadLine();
             Console.WriteLine();
 
@@ -106,9 +115,13 @@ namespace PhoneBookApp
             newContact.DateOfBirth = Console.ReadLine();
 
 
-            contactDict.Add(newContact.LastName, ContactFormat(newContact.FirstName, newContact.LastName, newContact.Address, newContact.PhoneNumber, newContact.DateOfBirth));
-            Console.WriteLine("This contact has been added!\n\n Press enter to return to the menu:");
+            contactDict.Add(_counter, newContact);
+            _counter++;
+            WriteItOut();
+        Console.WriteLine("This contact has been added!\n\n Press enter to return to the menu:");
             Console.ReadLine();
+            //CreateContact();
+           
         }
         /// <summary>
         /// Method shows contacts as reference point to select contact to update
@@ -119,14 +132,16 @@ namespace PhoneBookApp
             //Stars by letting the user examine already entered contacts so that user can reference 
             //to search by number 
             Console.WriteLine("Lets decide who you would like to update");
-            foreach (KeyValuePair<string, string> val in contactDict)
+            foreach (KeyValuePair<int,Contacts> val in contactDict)
             {
-                Console.WriteLine($"\n\n{val.Value}\n\n");
+                Console.WriteLine($"\n\n{val.Key }:\n {ContactFormat(val.Value)}\n\n");
+                // thread.sleep(3000)
             }
+            
 
             //search for contact in contactDict by key
-            Console.WriteLine("Please select a contact by last name:");
-            var conSel = Console.ReadLine();//user input number
+            Console.WriteLine("Please select a contact by number:");
+            var conSel = int.Parse(Console.ReadLine());//user input number
 
             //uses conditional to determine matching key to user input
             if (contactDict.ContainsKey(conSel) == true)
@@ -171,8 +186,9 @@ namespace PhoneBookApp
                     contactDict.Remove(conSel);//uses .Remove to remove pre existing instance of the contact
                                                //contactDict.Add(newContact.PhoneNumber , newContact);
                                                //adds contact with new info to contactdict
-                    contactDict.Add(upContact.PhoneNumber, ContactFormat(upContact.FirstName, upContact.LastName, upContact.Address, upContact.PhoneNumber, upContact.DateOfBirth));
-
+                    contactDict.Add(_counter,upContact);
+                    _counter++;
+                    //WriteItOut();
 
                     Console.WriteLine("Contact Updated..");
                     Console.WriteLine();
@@ -201,11 +217,10 @@ namespace PhoneBookApp
             //displays all user contacts on case being met, then directs user back to the menu
 
 
-            foreach (KeyValuePair<string, string> val in contactDict)
-            {
-                Console.WriteLine($"\n\n{val.Value}\n\n");
-            }
-
+            //foreach (KeyValuePair<string, string> val in contactDict)
+            //{
+            //    Console.WriteLine($"\n\n{val.Value}\n\n");
+            //ReadItOut();
 
             Console.WriteLine();
             Console.WriteLine("Press enter to open menu:");
@@ -219,8 +234,8 @@ namespace PhoneBookApp
         {
 
             //Delete contact section allows user ro search by key, and deletes the value and key from contactDict using .Remove 
-            Console.WriteLine("Search the contacts by phone last name:");
-            var searchTerm = Console.ReadLine();
+            Console.WriteLine("Search the contacts by number:");
+            var searchTerm = int.Parse(Console.ReadLine());
             if (contactDict.ContainsKey(searchTerm) == true)
             {
 
@@ -249,6 +264,62 @@ namespace PhoneBookApp
             
 
         }
+        public void WriteItOut()
+        {
+            JsonSerializer serializer = new JsonSerializer();
+            serializer.NullValueHandling = NullValueHandling.Ignore;
+            using (StreamWriter sw = new StreamWriter(@"C:\Users\mbfla\source\repos\PhoneBookAppsln\PhoneBookApp\bin\Debug\netcoreapp3.1\WriteLines.txt")) 
+            using (JsonWriter writer = new JsonTextWriter(sw))
+            {
+                serializer.Serialize(writer, contactDict.Values);
+            }
+
+            
+            
+
+
+
+        }
+        public void ReadItOut()
+        {
+
+
+        }
+        //public static void CreateContact()
+        //{
+        //    //Will ask for specific user input, assign to a variable and use variable to run constructor Contact, create an instance of 
+        //    //contact class and add it to a dictionary with the key value pair being phone number : Contact
+        //    Contacts newContact = new Contacts();
+
+        //    Console.WriteLine("Please enter a first name:");
+        //    newContact.FirstName = Console.ReadLine();
+        //    Console.WriteLine();
+
+
+        //    Console.WriteLine("Please enter a last name:");
+        //    newContact.LastName = Console.ReadLine();
+        //    Console.WriteLine();
+
+
+        //    Console.WriteLine("Please enter an address:");
+        //    newContact.Address = Console.ReadLine();
+        //    Console.WriteLine();
+
+
+        //    Console.WriteLine("Please enter a phone number:");
+        //    newContact.PhoneNumber = Console.ReadLine();
+        //    Console.WriteLine();
+
+        //    Console.WriteLine("Please enter a date of birth:");
+        //    newContact.DateOfBirth = Console.ReadLine();
+
+
+        //    contactDict.Add(_counter, newContact);
+        //    _counter++;
+        //    WriteItOut();
+        //    Console.WriteLine("This contact has been added!\n\n Press enter to return to the menu:");
+        //    Console.ReadLine();
+        //}
 
     }
 }
